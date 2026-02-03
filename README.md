@@ -2,7 +2,7 @@
 
 # Garmin MCP Server
 
-This Model Context Protocol (MCP) server connects to Garmin Connect and exposes your fitness and health data to Claude and other MCP-compatible clients.
+This Model Context Protocol (MCP) server connects to Garmin Connect and exposes your fitness and health data to Claude, ChatGPT, and other MCP-compatible clients.
 
 Garmin's API is accessed via the awesome [python-garminconnect](https://github.com/cyberjunky/python-garminconnect) library.
 
@@ -118,6 +118,71 @@ Add to your Claude Desktop MCP settings **WITHOUT** credentials:
 #### Step 3: Restart Claude Desktop
 
 Your Garmin data is now available in Claude!
+
+---
+
+### Quick Start for ChatGPT (SSE Server)
+
+ChatGPT and other HTTP-based MCP clients require an SSE (Server-Sent Events) transport. This server includes an SSE mode for compatibility.
+
+#### Prerequisites
+
+- Python 3.12+
+- Garmin Connect account (pre-authenticated)
+- A way to expose the server to the internet (for ChatGPT)
+
+#### Step 1: Pre-authenticate (One-time)
+
+Same as Claude Desktop setup - authenticate first:
+
+```bash
+uvx --python 3.12 --from git+https://github.com/Taxuspt/garmin_mcp garmin-mcp-auth
+```
+
+#### Step 2: Start the SSE Server
+
+```bash
+# Start SSE server on default port 8000
+uvx --python 3.12 --from git+https://github.com/Taxuspt/garmin_mcp garmin-mcp-sse
+
+# Or with custom host/port
+uvx --python 3.12 --from git+https://github.com/Taxuspt/garmin_mcp garmin-mcp-sse --host 0.0.0.0 --port 3000
+```
+
+The server exposes these endpoints:
+- `GET /sse` - SSE connection endpoint for MCP clients
+- `POST /messages/` - Message handling endpoint
+- `GET /health` - Health check endpoint
+- `GET /` - Server info
+
+#### Step 3: Expose to the Internet
+
+For ChatGPT to connect, the server must be publicly accessible. Options include:
+
+**Development/Testing:**
+```bash
+# Using ngrok
+ngrok http 8000
+```
+
+**Production:**
+- Deploy to a cloud platform (AWS, GCP, Azure, Heroku, Railway, etc.)
+- Use a reverse proxy (nginx, Caddy) with HTTPS
+
+#### Step 4: Connect to ChatGPT
+
+1. Enable Developer Mode in your ChatGPT workspace (requires Business, Enterprise, or Edu plan)
+2. Go to Settings → Connectors → Add Connector
+3. Enter your server URL: `https://your-domain.com/sse`
+4. Follow the prompts to complete setup
+
+See [OpenAI's MCP documentation](https://platform.openai.com/docs/guides/tools-connectors-mcp) for detailed instructions.
+
+#### Environment Variables for SSE Server
+
+- `HOST`: Server bind address (default: `127.0.0.1`)
+- `PORT`: Server port (default: `8000`)
+- `DEBUG`: Enable debug mode (default: `false`)
 
 ---
 
