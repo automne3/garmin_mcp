@@ -182,6 +182,18 @@ ngrok http 8000
 - Deploy to a cloud platform (AWS, GCP, Azure, Heroku, Railway, etc.)
 - Use a reverse proxy (nginx, Caddy) with HTTPS
 
+**Render (quick start):**
+1. Create a new Render Web Service from this repo.
+2. Use `Dockerfile.sse` (or `render.yaml`).
+3. Add a persistent disk mounted at `/var/data` (1 GB is enough).
+4. Set environment variables:
+   - `GOOGLE_OAUTH_CLIENT_ID` (required)
+   - `MCP_READ_ONLY=false`
+   - `GARMINTOKENS=/var/data/garminconnect`
+   - `MCP_MEMORY_DIR=/var/data/memory`
+5. Copy your local `~/.garminconnect` and `~/.garmin_mcp/memory` into the disk
+   (so you don't have to re-authenticate or lose memory).
+
 #### Step 4: Connect to ChatGPT
 
 1. Enable Developer Mode in your ChatGPT workspace (requires Business, Enterprise, or Edu plan)
@@ -199,6 +211,8 @@ See [OpenAI's MCP documentation](https://platform.openai.com/docs/guides/tools-c
 - `GOOGLE_OAUTH_CLIENT_ID`: Required. Google OAuth client ID used to validate access tokens.
 - `OAUTH_TOKENINFO_CACHE_SECONDS`: Tokeninfo cache TTL in seconds (default: `600`).
 - `MCP_READ_ONLY`: Disable write tools when `true` (default: `true`).
+- `GARMINTOKENS`: Directory path for Garmin OAuth token storage.
+- `MCP_MEMORY_DIR`: Directory path for training context memory storage.
 
 #### OAuth for ChatGPT (Google)
 

@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: garmin-mcp-sse
+    runtime: docker
+    dockerfilePath: ./Dockerfile.sse
+    plan: free
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 8000
+      - key: GOOGLE_OAUTH_CLIENT_ID
+        sync: false
+      - key: MCP_READ_ONLY
+        value: "false"
+      - key: GARMINTOKENS
+        value: /var/data/garminconnect
+      - key: MCP_MEMORY_DIR
+        value: /var/data/memory
+    disk:
+      name: garmin-mcp-data
+      mountPath: /var/data
+      sizeGB: 1
