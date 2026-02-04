@@ -32,6 +32,31 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+# Global MCP app instance (lazy initialization)
+_mcp_app = None
+_garmin_client = None
+_garmin_modules = None
+_garmin_init = None
+
+
+def _configure_garmin_client() -> bool:
+    global _garmin_client
+    if _garmin_client is not None:
+        return True
+    if _garmin_init is None or _garmin_modules is None:
+        return False
+    init_api, email, password = _garmin_init
+    garmin_client = init_api(email, password)
+    if not garmin_client:
+        logger.warning("Garmin Connect client not initialized yet; will retry later.")
+        return False
+    for module in _garmin_modules:
+        module.configure(garmin_client)
+    _garmin_client = garmin_client
+    logger.info("Garmin Connect client initialized successfully.")
+    return True
+
+
 def create_sse_app():
     """Create and configure the SSE MCP server application."""
     from garmin_mcp import (
@@ -54,26 +79,21 @@ def create_sse_app():
     )
     from mcp.server.fastmcp import FastMCP
 
-    # Initialize Garmin client
-    garmin_client = init_api(email, password)
-    if not garmin_client:
-        logger.error("Failed to initialize Garmin Connect client.")
-        raise RuntimeError("Failed to initialize Garmin Connect client")
-
-    logger.info("Garmin Connect client initialized successfully.")
-
-    # Configure all modules with the Garmin client
-    activity_management.configure(garmin_client)
-    health_wellness.configure(garmin_client)
-    user_profile.configure(garmin_client)
-    devices.configure(garmin_client)
-    gear_management.configure(garmin_client)
-    weight_management.configure(garmin_client)
-    challenges.configure(garmin_client)
-    training.configure(garmin_client)
-    workouts.configure(garmin_client)
-    data_management.configure(garmin_client)
-    womens_health.configure(garmin_client)
+    global _garmin_modules, _garmin_init
+    _garmin_modules = (
+        activity_management,
+        health_wellness,
+        user_profile,
+        devices,
+        gear_management,
+        weight_management,
+        challenges,
+        training,
+        workouts,
+        data_management,
+        womens_health,
+    )
+    _garmin_init = (init_api, email, password)
 
     # Create the MCP app
     mcp_app = FastMCP("Garmin Connect v1.0")
@@ -95,11 +115,8 @@ def create_sse_app():
     # Register resources (workout templates)
     mcp_app = workout_templates.register_resources(mcp_app)
 
+    _configure_garmin_client()
     return mcp_app
-
-
-# Global MCP app instance (lazy initialization)
-_mcp_app = None
 
 
 def get_mcp_app():
@@ -107,6 +124,7 @@ def get_mcp_app():
     global _mcp_app
     if _mcp_app is None:
         _mcp_app = create_sse_app()
+    _configure_garmin_client()
     return _mcp_app
 
 
