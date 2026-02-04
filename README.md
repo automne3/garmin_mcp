@@ -213,6 +213,7 @@ See [OpenAI's MCP documentation](https://platform.openai.com/docs/guides/tools-c
 - `MCP_READ_ONLY`: Disable write tools when `true` (default: `true`).
 - `GARMINTOKENS`: Directory path for Garmin OAuth token storage.
 - `MCP_MEMORY_DIR`: Directory path for training context memory storage.
+- `MCP_MEMORY_WRITE_ENABLED`: Allow `memory_write` even when `MCP_READ_ONLY=true` (default: `true`).
 
 #### OAuth for ChatGPT (Google)
 

@@ -92,7 +92,12 @@ def register_tools(app):
             mode: append | replace | clear
         """
         read_only = os.getenv("MCP_READ_ONLY", "true").lower() in ("1", "true", "yes")
-        if read_only:
+        memory_write_enabled = os.getenv("MCP_MEMORY_WRITE_ENABLED", "true").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
+        if read_only and not memory_write_enabled:
             return "Error: MCP_READ_ONLY is enabled. Writes are disabled."
 
         payload = _load_memory(namespace)
