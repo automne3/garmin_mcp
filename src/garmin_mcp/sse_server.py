@@ -50,6 +50,7 @@ def create_sse_app():
         workout_templates,
         data_management,
         womens_health,
+        memory_context,
     )
     from mcp.server.fastmcp import FastMCP
 
@@ -89,6 +90,7 @@ def create_sse_app():
     mcp_app = workouts.register_tools(mcp_app)
     mcp_app = data_management.register_tools(mcp_app)
     mcp_app = womens_health.register_tools(mcp_app)
+    mcp_app = memory_context.register_tools(mcp_app)
 
     # Register resources (workout templates)
     mcp_app = workout_templates.register_resources(mcp_app)

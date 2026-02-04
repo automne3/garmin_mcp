@@ -31,6 +31,7 @@ This MCP server implements **95+ tools** covering ~88% of the [python-garminconn
 - ✅ Challenges & Badges (10 tools)
 - ✅ Women's Health (3 tools)
 - ✅ User Profile (3 tools)
+- ✅ Training Context Memory (2 tools)
 
 ### Intentionally Skipped Endpoints
 
@@ -47,6 +48,18 @@ Some endpoints are not implemented due to performance or complexity consideratio
 - Internal/Auth methods: `login()`, `resume_login()`, `connectapi()`, `download()` - Handled automatically by the library.
 
 If you need any of these endpoints, please [open an issue](https://github.com/Taxuspt/garmin_mcp/issues).
+
+### Training Context Memory
+
+ChatGPT MCP connectors do not support built-in memory. This server includes
+two tools to persist training context locally:
+
+- `memory_get(namespace="default", limit=None)` - Read stored entries
+- `memory_write(namespace="default", data={}, mode="append")` - Append, replace, or clear
+
+By default, memory is stored in `~/.garmin_mcp/memory` as JSON files (one per
+namespace). Override with `MCP_MEMORY_DIR`. When `MCP_READ_ONLY=true`,
+`memory_write` is disabled.
 
 ## Setup
 
