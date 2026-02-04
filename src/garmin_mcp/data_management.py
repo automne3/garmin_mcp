@@ -3,6 +3,7 @@ Data management functions for Garmin Connect MCP Server
 """
 import json
 import datetime
+import os
 from typing import Any, Dict, List, Optional, Union
 
 # The garmin_client will be set by the main file
@@ -17,7 +18,10 @@ def configure(client):
 
 def register_tools(app):
     """Register all data management tools with the MCP server app"""
-    
+    read_only = os.getenv("MCP_READ_ONLY", "true").lower() in ("1", "true", "yes")
+    if read_only:
+        return app
+
     @app.tool()
     async def add_body_composition(
         date: str,

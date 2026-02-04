@@ -3,6 +3,7 @@ Workout-related functions for Garmin Connect MCP Server
 """
 import json
 import datetime
+import os
 from typing import Any, Dict, List, Optional, Union
 
 # The garmin_client will be set by the main file
@@ -207,6 +208,7 @@ def _curate_scheduled_workout(scheduled: dict) -> dict:
 
 def register_tools(app):
     """Register all workout-related tools with the MCP server app"""
+    read_only = os.getenv("MCP_READ_ONLY", "true").lower() in ("1", "true", "yes")
 
     @app.tool()
     async def get_workouts() -> str:
@@ -294,9 +296,10 @@ def register_tools(app):
         except Exception as e:
             return f"Error downloading workout: {str(e)}"
 
-    @app.tool()
-    async def upload_workout(workout_data: dict) -> str:
-        """Upload a workout from JSON data
+    if not read_only:
+        @app.tool()
+        async def upload_workout(workout_data: dict) -> str:
+            """Upload a workout from JSON data
 
         Creates a new workout in Garmin Connect from structured workout data.
 
@@ -325,25 +328,25 @@ def register_tools(app):
         Args:
             workout_data: Dictionary containing workout structure (name, sport type, segments, etc.)
         """
-        try:
-            # Pass dict directly - library handles conversion
-            result = garmin_client.upload_workout(workout_data)
+            try:
+                # Pass dict directly - library handles conversion
+                result = garmin_client.upload_workout(workout_data)
 
-            # Curate the response
-            if isinstance(result, dict):
-                curated = {
-                    "status": "success",
-                    "workout_id": result.get('workoutId'),
-                    "name": result.get('workoutName'),
-                    "message": "Workout uploaded successfully"
-                }
-                # Remove None values
-                curated = {k: v for k, v in curated.items() if v is not None}
-                return json.dumps(curated, indent=2)
+                # Curate the response
+                if isinstance(result, dict):
+                    curated = {
+                        "status": "success",
+                        "workout_id": result.get('workoutId'),
+                        "name": result.get('workoutName'),
+                        "message": "Workout uploaded successfully"
+                    }
+                    # Remove None values
+                    curated = {k: v for k, v in curated.items() if v is not None}
+                    return json.dumps(curated, indent=2)
 
-            return json.dumps(result, indent=2)
-        except Exception as e:
-            return f"Error uploading workout: {str(e)}"
+                return json.dumps(result, indent=2)
+            except Exception as e:
+                return f"Error uploading workout: {str(e)}"
 
     @app.tool()
     async def get_scheduled_workouts(start_date: str, end_date: str) -> str:
@@ -442,9 +445,10 @@ def register_tools(app):
         except Exception as e:
             return f"Error retrieving training plan workouts: {str(e)}"
 
-    @app.tool()
-    async def schedule_workout(workout_id: int, calendar_date: str) -> str:
-        """Schedule a workout to a specific calendar date
+    if not read_only:
+        @app.tool()
+        async def schedule_workout(workout_id: int, calendar_date: str) -> str:
+            """Schedule a workout to a specific calendar date
 
         This adds an existing workout from your Garmin workout library
         to your Garmin Connect calendar on the specified date.
@@ -453,26 +457,26 @@ def register_tools(app):
             workout_id: ID of the workout to schedule (get IDs from get_workouts)
             calendar_date: Date to schedule the workout in YYYY-MM-DD format
         """
-        try:
-            url = f"workout-service/schedule/{workout_id}"
-            response = garmin_client.garth.post("connectapi", url, json={"date": calendar_date})
+            try:
+                url = f"workout-service/schedule/{workout_id}"
+                response = garmin_client.garth.post("connectapi", url, json={"date": calendar_date})
 
-            if response.status_code == 200:
-                return json.dumps({
-                    "status": "success",
-                    "workout_id": workout_id,
-                    "scheduled_date": calendar_date,
-                    "message": f"Successfully scheduled workout {workout_id} for {calendar_date}"
-                }, indent=2)
-            else:
-                return json.dumps({
-                    "status": "failed",
-                    "workout_id": workout_id,
-                    "scheduled_date": calendar_date,
-                    "http_status": response.status_code,
-                    "message": f"Failed to schedule workout: HTTP {response.status_code}"
-                }, indent=2)
-        except Exception as e:
-            return f"Error scheduling workout: {str(e)}"
+                if response.status_code == 200:
+                    return json.dumps({
+                        "status": "success",
+                        "workout_id": workout_id,
+                        "scheduled_date": calendar_date,
+                        "message": f"Successfully scheduled workout {workout_id} for {calendar_date}"
+                    }, indent=2)
+                else:
+                    return json.dumps({
+                        "status": "failed",
+                        "workout_id": workout_id,
+                        "scheduled_date": calendar_date,
+                        "http_status": response.status_code,
+                        "message": f"Failed to schedule workout: HTTP {response.status_code}"
+                    }, indent=2)
+            except Exception as e:
+                return f"Error scheduling workout: {str(e)}"
 
     return app

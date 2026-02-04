@@ -183,6 +183,26 @@ See [OpenAI's MCP documentation](https://platform.openai.com/docs/guides/tools-c
 - `HOST`: Server bind address (default: `127.0.0.1`)
 - `PORT`: Server port (default: `8000`)
 - `DEBUG`: Enable debug mode (default: `false`)
+- `GOOGLE_OAUTH_CLIENT_ID`: Required. Google OAuth client ID used to validate access tokens.
+- `OAUTH_TOKENINFO_CACHE_SECONDS`: Tokeninfo cache TTL in seconds (default: `600`).
+- `MCP_READ_ONLY`: Disable write tools when `true` (default: `true`).
+
+#### OAuth for ChatGPT (Google)
+
+This server expects OAuth access tokens on all MCP requests:
+
+- `GET /sse` requires `Authorization: Bearer <access_token>`
+- `POST /messages/` requires `Authorization: Bearer <access_token>`
+
+Configure a Google OAuth "Web application" client and use these endpoints:
+
+- Authorization URL: `https://accounts.google.com/o/oauth2/v2/auth`
+- Token URL: `https://oauth2.googleapis.com/token`
+- Scopes: `openid email profile`
+
+When adding the MCP connector in ChatGPT, ensure the OAuth scopes field is set to
+`openid email profile`. If scopes are empty, Google will return
+`Error 400: invalid_request (Missing required parameter: scope)`.
 
 ---
 

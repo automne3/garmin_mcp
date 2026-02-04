@@ -4,6 +4,7 @@ Training and performance functions for Garmin Connect MCP Server
 
 import json
 import datetime
+import os
 from typing import Any, Dict, List, Optional, Union
 
 # The garmin_client will be set by the main file
@@ -71,6 +72,7 @@ def _map_contributor(
 
 def register_tools(app):
     """Register all training-related tools with the MCP server app"""
+    read_only = os.getenv("MCP_READ_ONLY", "true").lower() in ("1", "true", "yes")
 
     @app.tool()
     async def get_progress_summary_between_dates(
@@ -655,17 +657,18 @@ def register_tools(app):
         except Exception as e:
             return f"Error retrieving lactate threshold data: {str(e)}"
 
-    @app.tool()
-    async def request_reload(date: str) -> str:
-        """Request reload of epoch data
+    if not read_only:
+        @app.tool()
+        async def request_reload(date: str) -> str:
+            """Request reload of epoch data
 
         Args:
             date: Date in YYYY-MM-DD format
         """
-        try:
-            result = garmin_client.request_reload(date)
-            return json.dumps(result, indent=2)
-        except Exception as e:
-            return f"Error requesting data reload: {str(e)}"
+            try:
+                result = garmin_client.request_reload(date)
+                return json.dumps(result, indent=2)
+            except Exception as e:
+                return f"Error requesting data reload: {str(e)}"
 
     return app
